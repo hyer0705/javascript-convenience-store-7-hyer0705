@@ -131,6 +131,35 @@
   - 구매 수량이 재고 수량을 초과한 경우: [ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.
   - 기타 잘못된 입력의 경우: [ERROR] 잘못된 입력입니다. 다시 입력해 주세요.
 
+## 프로그래밍 요구 사항
+
+- 함수(또는 메서드)의 길이가 10라인을 넘어가지 않도록 구현한다.
+  - 함수(또는 메서드)가 한 가지 일만 잘 하도록 구현한다.
+- 입출력을 담당하는 클래스를 별도로 구현한다.
+
+  - 아래 InputView, OutputView 클래스를 참고하여 입출력 클래스를 구현한다.
+  - 클래스 이름, 메소드 반환 유형, 시그니처 등은 자유롭게 수정할 수 있다.
+
+  ```javascript
+  const InputView = {
+    async readItem() {
+      const input = await MissionUtils.Console.readLineAsync('구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])');
+      // ...
+    },
+    // ...
+  };
+  ```
+
+  ```javascript
+  const OutputView = {
+    printProducts() {
+      MissionUtils.Console.print('- 콜라 1,000원 10개 탄산2+1');
+      // ...
+    },
+    // ...
+  };
+  ```
+
 ## 실행 결과 예시
 
 ```plaintext
