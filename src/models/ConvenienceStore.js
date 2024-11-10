@@ -2,20 +2,29 @@ import fs from 'fs';
 import { Console } from '@woowacourse/mission-utils';
 import Product from './Product.js';
 import OutputView from '../utils/OutputView.js';
+import InputView from '../utils/InputView.js';
 
 class ConvenienceStore {
   products;
 
   #ouputView;
 
+  #inputView;
+
   constructor() {
     this.products = [];
 
     this.#ouputView = new OutputView();
+    this.#inputView = new InputView();
+  }
+
+  getProducts() {
+    return this.products;
   }
 
   start() {
     this.welcome();
+    this.inputPurchaseItems();
   }
 
   welcome() {
@@ -63,8 +72,33 @@ class ConvenienceStore {
     return { name, price, promotion, promotionQuantity: +quantity, generalQuantity };
   }
 
-  getProducts() {
-    return this.products;
+  async inputPurchaseItems() {
+    try {
+      const input = await this.#inputView.readPurchaseItems();
+      this.validateInputPurchaseItems(input);
+    } catch (error) {
+      Console.print(error.message);
+      this.inputPurchaseItems();
+    }
+  }
+
+  validateInputPurchaseItems(input) {
+    const regexp = /^\[([A-Za-z가-힣]+-\d+)\](?:,\[([A-Za-z가-힣]+-\d+)\])*$/;
+
+    if (!input.match(regexp)) throw new Error('[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.\n');
+
+    const items = input.split(',').map(item => item.match(/\[([A-Za-z가-힣]+)-(\d+)\]/).slice(1));
+
+    items.forEach(([name, quantity]) => this.validatePurchaseItem(name, quantity));
+  }
+
+  validatePurchaseItem(name, quantity) {
+    const product = this.products.find(product => product.name === name);
+
+    if (!product) throw new Error('[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.\n');
+
+    if (+quantity > product.generalQuantity + product.promotionQuantity)
+      throw new Error('[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.\n');
   }
 }
 

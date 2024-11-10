@@ -11,7 +11,7 @@ class OutputView {
       str += product.toString();
     });
 
-    Console.print(str.trim());
+    Console.print(`${str}`);
   }
 }
 
