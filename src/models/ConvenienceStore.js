@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Console } from '@woowacourse/mission-utils';
-import Product from './Product';
+import Product from './Product.js';
 
 class ConvenienceStore {
   products;
@@ -45,6 +45,10 @@ class ConvenienceStore {
     if (promotion === 'null') return { name, price, promotion: currentPromotion, promotionQuantity, generalQuantity: +quantity };
 
     return { name, price, promotion, promotionQuantity: +quantity, generalQuantity };
+  }
+
+  getProducts() {
+    return this.products;
   }
 }
 
