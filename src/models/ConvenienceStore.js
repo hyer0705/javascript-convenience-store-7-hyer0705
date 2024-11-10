@@ -1,12 +1,28 @@
 import fs from 'fs';
 import { Console } from '@woowacourse/mission-utils';
 import Product from './Product.js';
+import OutputView from '../utils/OutputView.js';
 
 class ConvenienceStore {
   products;
 
+  #ouputView;
+
   constructor() {
     this.products = [];
+
+    this.#ouputView = new OutputView();
+  }
+
+  start() {
+    this.welcome();
+  }
+
+  welcome() {
+    this.loadProducts();
+
+    this.#ouputView.printWelcome();
+    this.#ouputView.printProducts(this.products);
   }
 
   loadProducts() {
