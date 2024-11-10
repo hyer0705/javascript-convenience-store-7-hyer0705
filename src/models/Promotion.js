@@ -1,3 +1,5 @@
+import { DateTimes } from '@woowacourse/mission-utils';
+
 class Promotion {
   constructor(name, buy, get, startDate, endDate) {
     this.name = name;
@@ -5,6 +7,12 @@ class Promotion {
     this.get = get;
     this.startDate = startDate;
     this.endDate = endDate;
+  }
+
+  isValid() {
+    const today = DateTimes.new();
+
+    return today >= this.startDate && today <= this.endDate;
   }
 }
 

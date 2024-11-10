@@ -3,9 +3,14 @@ import { Console } from '@woowacourse/mission-utils';
 import Product from './Product.js';
 import OutputView from '../utils/OutputView.js';
 import InputView from '../utils/InputView.js';
+import Promotion from './Promotion.js';
 
 class ConvenienceStore {
   products;
+
+  promotions;
+
+  purchaseItems;
 
   #ouputView;
 
@@ -13,6 +18,8 @@ class ConvenienceStore {
 
   constructor() {
     this.products = [];
+    this.promotions = [];
+    this.purchaseItems = [];
 
     this.#ouputView = new OutputView();
     this.#inputView = new InputView();
@@ -24,11 +31,14 @@ class ConvenienceStore {
 
   start() {
     this.welcome();
-    this.inputPurchaseItems();
+
+    Console.print(this.promotion);
+    // this.inputPurchaseItems();
   }
 
   welcome() {
     this.loadProducts();
+    this.loadPromotions();
 
     this.#ouputView.printWelcome();
     this.#ouputView.printProducts(this.products);
@@ -43,7 +53,7 @@ class ConvenienceStore {
         this.products.push(new Product(name, price, generalQuantity, promotionQuantity, promotion)),
       );
     } catch (error) {
-      Console.print(error);
+      Console.print('[ERROR]');
     }
   }
 
@@ -72,10 +82,26 @@ class ConvenienceStore {
     return { name, price, promotion, promotionQuantity: +quantity, generalQuantity };
   }
 
+  loadPromotions() {
+    try {
+      const data = fs.readFileSync('public/promotions.md', 'utf-8').trim().split('\n').slice(1);
+
+      data.forEach(promotion => {
+        const [name, buy, get, startDate, endDate] = promotion.split(',');
+
+        this.promotions.push(new Promotion(name, +buy, +get, startDate, endDate));
+      });
+    } catch (error) {
+      Console.print(error);
+    }
+  }
+
   async inputPurchaseItems() {
     try {
       const input = await this.#inputView.readPurchaseItems();
-      this.validateInputPurchaseItems(input);
+      const items = this.validateInputPurchaseItems(input);
+
+      this.addPurchaseItems(items);
     } catch (error) {
       Console.print(error.message);
       this.inputPurchaseItems();
@@ -90,6 +116,8 @@ class ConvenienceStore {
     const items = input.split(',').map(item => item.match(/\[([A-Za-z가-힣]+)-(\d+)\]/).slice(1));
 
     items.forEach(([name, quantity]) => this.validatePurchaseItem(name, quantity));
+
+    return items;
   }
 
   validatePurchaseItem(name, quantity) {
@@ -99,6 +127,10 @@ class ConvenienceStore {
 
     if (+quantity > product.generalQuantity + product.promotionQuantity)
       throw new Error('[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.\n');
+  }
+
+  addPurchaseItems(items) {
+    items.forEach(([name, quantity]) => {});
   }
 }
 
