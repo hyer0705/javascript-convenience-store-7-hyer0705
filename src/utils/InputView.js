@@ -25,7 +25,7 @@ class InputView {
       return isWithoutPromotion;
     } catch (error) {
       Console.print(error.message);
-      return this.isProceedWithoutPromotion();
+      return this.isProceedWithoutPromotion(message);
     }
   }
 

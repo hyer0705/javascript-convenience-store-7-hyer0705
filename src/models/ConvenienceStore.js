@@ -14,7 +14,7 @@ class ConvenienceStore {
 
   isMembership;
 
-  #ouputView;
+  #outputView;
 
   #inputView;
 
@@ -24,7 +24,7 @@ class ConvenienceStore {
     this.purchaseItems = [];
     this.isMembership = 'N';
 
-    this.#ouputView = new OutputView();
+    this.#outputView = new OutputView();
     this.#inputView = new InputView();
   }
 
@@ -37,7 +37,8 @@ class ConvenienceStore {
       this.welcome();
 
       await this.inputPurchaseItems();
-      await this.inputMemebershipDiscount();
+
+      await this.inputMembershipDiscount();
 
       this.calculateBillAmount();
     } catch (error) {
@@ -49,8 +50,8 @@ class ConvenienceStore {
     this.loadProducts();
     this.loadPromotions();
 
-    this.#ouputView.printWelcome();
-    this.#ouputView.printProducts(this.products);
+    this.#outputView.printWelcome();
+    this.#outputView.printProducts(this.products);
   }
 
   loadProducts() {
@@ -110,7 +111,7 @@ class ConvenienceStore {
       const input = await this.#inputView.readPurchaseItems();
       const items = this.validateInputPurchaseItems(input);
 
-      this.addPurchaseItems(items);
+      return this.addPurchaseItems(items);
     } catch (error) {
       Console.print(error.message);
       return this.inputPurchaseItems();
@@ -138,15 +139,17 @@ class ConvenienceStore {
     return [name, Number(quantity)];
   }
 
-  addPurchaseItems(items) {
-    items.forEach(([name, quantity]) => {
+  async addPurchaseItems(items) {
+    const purchasePromises = items.map(async ([name, quantity]) => {
       const findProduct = this.products.find(product => product.name === name);
       const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
 
-      const purchaseItem = this.createPurchaseItem(quantity, findProduct, findPromotion);
-
-      this.purchaseItems.push(purchaseItem);
+      const purchaseItem = await this.createPurchaseItem(quantity, findProduct, findPromotion);
+      return purchaseItem;
     });
+
+    const purchaseResults = await Promise.all(purchasePromises);
+    this.purchaseItems = purchaseResults;
   }
 
   isPromotion(promotion) {
@@ -199,7 +202,7 @@ class ConvenienceStore {
     return { name: product.name, totalQuantity: promotionQuantity + generalQuantity, promotionQuantity };
   }
 
-  async inputMemebershipDiscount() {
+  async inputMembershipDiscount() {
     const isMembershipDiscount = await this.#inputView.readMembershipDiscount();
 
     this.isMembership = isMembershipDiscount;
@@ -213,7 +216,7 @@ class ConvenienceStore {
 
     this.printProducts();
     this.printPromotionGift();
-    this.#ouputView.printTotalPrice(totalPurchaseItemsAmount, totalPrice, promotionDiscout, membershipDiscount);
+    this.#outputView.printTotalPrice(totalPurchaseItemsAmount, totalPrice, promotionDiscout, membershipDiscount);
 
     this.resetPurchase();
   }
@@ -276,6 +279,12 @@ class ConvenienceStore {
 
       Console.print(`${item.name}\t\t${Math.floor(item.promotionQuantity / (findPromotion.get + findPromotion.buy))}`);
     });
+  }
+
+  resetPurchase() {
+    // 재고 감소 시키기
+    Console.print(this.purchaseItems);
+    // purchaseItems, isMembership
   }
 }
 
