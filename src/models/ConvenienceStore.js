@@ -12,6 +12,8 @@ class ConvenienceStore {
 
   purchaseItems;
 
+  isMembership;
+
   #ouputView;
 
   #inputView;
@@ -20,6 +22,7 @@ class ConvenienceStore {
     this.products = [];
     this.promotions = [];
     this.purchaseItems = [];
+    this.isMembership = 'N';
 
     this.#ouputView = new OutputView();
     this.#inputView = new InputView();
@@ -29,10 +32,13 @@ class ConvenienceStore {
     return this.products;
   }
 
-  start() {
+  async start() {
     this.welcome();
 
-    this.inputPurchaseItems();
+    await this.inputPurchaseItems();
+    await this.inputMemebershipDiscount();
+
+    this.calculateBillAmount();
   }
 
   welcome() {
@@ -53,6 +59,20 @@ class ConvenienceStore {
       );
     } catch (error) {
       Console.print('[ERROR]');
+    }
+  }
+
+  loadPromotions() {
+    try {
+      const data = fs.readFileSync('public/promotions.md', 'utf-8').trim().split('\n').slice(1);
+
+      data.forEach(promotion => {
+        const [name, buy, get, startDate, endDate] = promotion.split(',');
+
+        this.promotions.push(new Promotion(name, +buy, +get, startDate, endDate));
+      });
+    } catch (error) {
+      Console.print(error);
     }
   }
 
@@ -81,26 +101,12 @@ class ConvenienceStore {
     return { name, price, promotion, promotionQuantity: +quantity, generalQuantity };
   }
 
-  loadPromotions() {
-    try {
-      const data = fs.readFileSync('public/promotions.md', 'utf-8').trim().split('\n').slice(1);
-
-      data.forEach(promotion => {
-        const [name, buy, get, startDate, endDate] = promotion.split(',');
-
-        this.promotions.push(new Promotion(name, +buy, +get, startDate, endDate));
-      });
-    } catch (error) {
-      Console.print(error);
-    }
-  }
-
   async inputPurchaseItems() {
     try {
       const input = await this.#inputView.readPurchaseItems();
       const items = this.validateInputPurchaseItems(input);
 
-      await this.addPurchaseItems(items);
+      this.addPurchaseItems(items);
     } catch (error) {
       Console.print(error.message);
       this.inputPurchaseItems();
@@ -187,6 +193,70 @@ class ConvenienceStore {
     }
 
     return { name: product.name, totalQuantity: promotionQuantity + generalQuantity, promotionQuantity };
+  }
+
+  async inputMemebershipDiscount() {
+    const isMembershipDiscount = await this.#inputView.readMembershipDiscount();
+
+    this.isMembership = isMembershipDiscount;
+  }
+
+  calculateBillAmount() {
+    let totalPrice = 0;
+    let promotionDiscout = 0;
+    const totalPurchaseItemsAmount = this.purchaseItems.reduce((acc, curr) => acc + curr.totalQuantity, 0);
+    const membershipDiscount = this.calculateMembershipDiscount();
+
+    Console.print('==============W 편의점================');
+    Console.print(`상품명\t\t수량\t금액`);
+    this.purchaseItems.forEach(item => {
+      totalPrice += this.calculateItemPrice(item);
+    });
+
+    Console.print(`=============${'증'.padEnd(7, ' ')}정===============`);
+    this.purchaseItems.forEach(item => {
+      promotionDiscout += this.calculatePromotionDiscount(item);
+    });
+    Console.print('====================================');
+
+    Console.print(`총구매액\t\t${totalPurchaseItemsAmount}\t${totalPrice.toLocaleString('ko-KR')}`);
+    Console.print(`행사할인\t\t\t-${promotionDiscout.toLocaleString('ko-KR')}`);
+    Console.print(`멤버십할인\t\t\t-${membershipDiscount.toLocaleString('ko-KR')}`);
+    Console.print(`내실돈\t\t\t\t${totalPrice - promotionDiscout - membershipDiscount}`);
+  }
+
+  calculateItemPrice(item) {
+    const findProduct = this.products.find(product => product.name === item.name);
+    const calculatePrice = findProduct.price * item.totalQuantity;
+
+    Console.print(`${item.name}\t\t${item.totalQuantity}\t${calculatePrice.toLocaleString('ko-KR')}`);
+    return calculatePrice;
+  }
+
+  calculatePromotionDiscount(item) {
+    if (item.promotionQuantity <= 0) return 0;
+
+    const findProduct = this.products.find(product => product.name === item.name);
+    const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
+
+    const giftItems = item.promotionQuantity / (findPromotion.buy + findPromotion.get);
+
+    Console.print(`${item.name}\t\t${giftItems}`);
+
+    return giftItems * findProduct.price;
+  }
+
+  calculateMembershipDiscount() {
+    if (this.isMembership === 'N') return 0;
+
+    const nonPromotionItems = this.purchaseItems.filter(purchase => purchase.totalQuantity - purchase.promotionQuantity > 0);
+    const nonPromotionItemsTotalPrice = nonPromotionItems.reduce((acc, currProduct) => {
+      const findProduct = this.products.find(product => product.name === currProduct.name);
+
+      return acc + findProduct.price * (currProduct.totalQuantity - currProduct.promotionQuantity);
+    }, 0);
+
+    return Math.min(8000, nonPromotionItemsTotalPrice * 0.3);
   }
 }
 

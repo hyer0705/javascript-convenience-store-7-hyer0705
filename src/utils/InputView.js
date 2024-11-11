@@ -29,6 +29,18 @@ class InputView {
     }
   }
 
+  async readMembershipDiscount() {
+    try {
+      const isMembershipDiscount = await Console.readLineAsync('멤버십 할인을 받으시겠습니까? (Y/N)\n');
+      this.validateYesOrNo(isMembershipDiscount);
+
+      return isMembershipDiscount;
+    } catch (error) {
+      Console.print(error.message);
+      this.readMembershipDiscount();
+    }
+  }
+
   validateYesOrNo(input) {
     if (input !== 'Y' && input !== 'N') throw new Error('[ERROR] 잘못된 형식입니다. 다시 입력해주세요.');
   }
