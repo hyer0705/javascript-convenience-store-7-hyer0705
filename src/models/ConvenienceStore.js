@@ -275,7 +275,7 @@ class ConvenienceStore {
     Console.print('===========W\t 편의점=============\n상품명\t\t 수량\t 금액');
     this.purchaseItems.forEach(item => {
       const findProduct = this.products.find(product => product.name === item.name);
-      Console.print(`${item.name}\t\t ${item.totalQuantity}\t ${findProduct.price * item.totalQuantity}`);
+      Console.print(`${item.name}\t\t ${item.totalQuantity}\t ${(findProduct.price * item.totalQuantity).toLocaleString('ko-KR')}`);
     });
   }
 
@@ -286,7 +286,7 @@ class ConvenienceStore {
       const findProduct = this.products.find(product => product.name === item.name);
       const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
 
-      Console.print(`${item.name}\t\t${Math.floor(item.promotionQuantity / (findPromotion.get + findPromotion.buy))}`);
+      Console.print(`${item.name}\t\t${Math.floor(item.promotionQuantity / (findPromotion.get + findPromotion.buy)).toLocaleString('ko-KR')}`);
     });
   }
 
