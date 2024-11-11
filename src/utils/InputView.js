@@ -13,19 +13,19 @@ class InputView {
       return isAddingItem;
     } catch (error) {
       Console.print(error.message);
-      this.addPromotionItem(message);
+      return this.addPromotionItem(message);
     }
   }
 
   async isProceedWithoutPromotion(message) {
     try {
       const isWithoutPromotion = await Console.readLineAsync(`${message} 그래도 구매하시겠습니까? (Y/N)\n`);
-      await this.validateYesOrNo(isWithoutPromotion);
+      this.validateYesOrNo(isWithoutPromotion);
 
       return isWithoutPromotion;
     } catch (error) {
       Console.print(error.message);
-      this.isProceedWithoutPromotion();
+      return this.isProceedWithoutPromotion();
     }
   }
 

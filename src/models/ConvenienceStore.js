@@ -39,7 +39,7 @@ class ConvenienceStore {
       await this.inputPurchaseItems();
       await this.inputMemebershipDiscount();
 
-      await this.calculateBillAmount();
+      this.calculateBillAmount();
     } catch (error) {
       Console.print(error.message);
     }
