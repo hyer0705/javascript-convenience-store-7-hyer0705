@@ -37,7 +37,7 @@ class InputView {
       return isMembershipDiscount;
     } catch (error) {
       Console.print(error.message);
-      this.readMembershipDiscount();
+      return this.readMembershipDiscount();
     }
   }
 

@@ -33,12 +33,16 @@ class ConvenienceStore {
   }
 
   async start() {
-    this.welcome();
+    try {
+      this.welcome();
 
-    await this.inputPurchaseItems();
-    await this.inputMemebershipDiscount();
+      await this.inputPurchaseItems();
+      await this.inputMemebershipDiscount();
 
-    this.calculateBillAmount();
+      await this.calculateBillAmount();
+    } catch (error) {
+      Console.print(error.message);
+    }
   }
 
   welcome() {
@@ -109,7 +113,7 @@ class ConvenienceStore {
       this.addPurchaseItems(items);
     } catch (error) {
       Console.print(error.message);
-      this.inputPurchaseItems();
+      return this.inputPurchaseItems();
     }
   }
 
