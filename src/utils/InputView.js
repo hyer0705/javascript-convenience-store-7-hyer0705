@@ -41,6 +41,18 @@ class InputView {
     }
   }
 
+  async readAdditionalPurchase() {
+    try {
+      const input = await Console.readLineAsync('감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)\n');
+      this.validateYesOrNo(input);
+
+      return input;
+    } catch (error) {
+      Console.print(error.message);
+      return this.readAdditionalPurchase();
+    }
+  }
+
   validateYesOrNo(input) {
     if (input !== 'Y' && input !== 'N') throw new Error('[ERROR] 잘못된 형식입니다. 다시 입력해주세요.');
   }

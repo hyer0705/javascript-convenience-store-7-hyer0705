@@ -26,32 +26,13 @@ class ConvenienceStore {
 
     this.#outputView = new OutputView();
     this.#inputView = new InputView();
+
+    this.loadProducts();
+    this.loadPromotions();
   }
 
   getProducts() {
     return this.products;
-  }
-
-  async start() {
-    try {
-      this.welcome();
-
-      await this.inputPurchaseItems();
-
-      await this.inputMembershipDiscount();
-
-      this.calculateBillAmount();
-    } catch (error) {
-      Console.print(error.message);
-    }
-  }
-
-  welcome() {
-    this.loadProducts();
-    this.loadPromotions();
-
-    this.#outputView.printWelcome();
-    this.#outputView.printProducts(this.products);
   }
 
   loadProducts() {
@@ -78,6 +59,34 @@ class ConvenienceStore {
       });
     } catch (error) {
       Console.print(error);
+    }
+  }
+
+  async start() {
+    try {
+      this.welcome();
+
+      await this.inputPurchaseItems();
+      await this.inputMembershipDiscount();
+
+      this.calculateBillAmount();
+
+      this.restart();
+    } catch (error) {
+      Console.print(error.message);
+    }
+  }
+
+  welcome() {
+    this.#outputView.printWelcome();
+    this.#outputView.printProducts(this.products);
+  }
+
+  async restart() {
+    const isAdditionalPurchase = await this.#inputView.readAdditionalPurchase();
+
+    if (isAdditionalPurchase === 'Y') {
+      this.start();
     }
   }
 
@@ -282,9 +291,14 @@ class ConvenienceStore {
   }
 
   resetPurchase() {
-    // 재고 감소 시키기
-    Console.print(this.purchaseItems);
-    // purchaseItems, isMembership
+    this.purchaseItems.forEach(item => {
+      const findProduct = this.products.find(product => product.name === item.name);
+
+      findProduct.reduceStock(item.totalQuantity, item.promotionQuantity);
+    });
+
+    this.purchaseItems = [];
+    this.isMembership = 'N';
   }
 }
 

@@ -28,6 +28,16 @@ class Product {
 
     return `- ${this.name} ${this.price.toLocaleString('ko-KR')}원 ${this.promotionQuantity}개 ${this.promotion}\n- ${this.name} ${this.price.toLocaleString('ko-KR')}원 ${this.generalQuantity}개\n`;
   }
+
+  reduceStock(totalQuantity, promotionQuantity) {
+    let cha = 0;
+    if (promotionQuantity > 0) {
+      cha = totalQuantity - Math.min(totalQuantity, this.promotionQuantity);
+      this.promotionQuantity -= Math.min(totalQuantity, this.promotionQuantity);
+    }
+
+    if (cha > 0) this.generalQuantity -= cha;
+  }
 }
 
 export default Product;
