@@ -32,8 +32,7 @@ class ConvenienceStore {
   start() {
     this.welcome();
 
-    Console.print(this.promotion);
-    // this.inputPurchaseItems();
+    this.inputPurchaseItems();
   }
 
   welcome() {
@@ -101,7 +100,7 @@ class ConvenienceStore {
       const input = await this.#inputView.readPurchaseItems();
       const items = this.validateInputPurchaseItems(input);
 
-      this.addPurchaseItems(items);
+      await this.addPurchaseItems(items);
     } catch (error) {
       Console.print(error.message);
       this.inputPurchaseItems();
@@ -115,9 +114,7 @@ class ConvenienceStore {
 
     const items = input.split(',').map(item => item.match(/\[([A-Za-z가-힣]+)-(\d+)\]/).slice(1));
 
-    items.forEach(([name, quantity]) => this.validatePurchaseItem(name, quantity));
-
-    return items;
+    return items.map(([name, quantity]) => this.validatePurchaseItem(name, quantity));
   }
 
   validatePurchaseItem(name, quantity) {
@@ -127,10 +124,69 @@ class ConvenienceStore {
 
     if (+quantity > product.generalQuantity + product.promotionQuantity)
       throw new Error('[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.\n');
+
+    return [name, Number(quantity)];
   }
 
   addPurchaseItems(items) {
-    items.forEach(([name, quantity]) => {});
+    items.forEach(([name, quantity]) => {
+      const findProduct = this.products.find(product => product.name === name);
+      const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
+
+      const purchaseItem = this.createPurchaseItem(quantity, findProduct, findPromotion);
+
+      this.purchaseItems.push(purchaseItem);
+    });
+  }
+
+  isPromotion(promotion) {
+    return promotion !== null;
+  }
+
+  createPurchaseItem(quantity, product, promotion) {
+    const isValid = this.isPromotion(product.promotion) && promotion.isValid();
+
+    if (isValid) return this.applyPromotion(quantity, product, promotion);
+
+    return { name: product.name, totalQuantity: quantity, promotionQuantity: 0 };
+  }
+
+  applyPromotion(quantity, product, promotion) {
+    const { generalQuantity, promotionQuantity, message } = promotion.validatePromotion(quantity, product.promotionQuantity);
+
+    if (message === 'MORE') {
+      return this.addPromotionItem(quantity, product, promotion);
+    }
+
+    if (message === 'NOT_APPLICABLE') {
+      return this.askProceedWithoutPromotion(promotionQuantity, generalQuantity, product);
+    }
+
+    return { name: product.name, totalQuantity: quantity, promotionQuantity };
+  }
+
+  async addPromotionItem(quantity, product, promotion) {
+    const isAddingPromotionItem = await this.#inputView.addPromotionItem(
+      `현재 ${product.name}은(는) ${promotion.get}개를 무료로 더 받을 수 있습니다.`,
+    );
+
+    if (isAddingPromotionItem === 'N') {
+      return { name: product.name, totalQuantity: quantity, promotionQuantity: 0 };
+    }
+
+    return { name: product.name, totalQuantity: quantity + 1, promotionQuantity: quantity + 1 };
+  }
+
+  async askProceedWithoutPromotion(promotionQuantity, generalQuantity, product) {
+    const isWithoutPromotion = await this.#inputView.isProceedWithoutPromotion(
+      `현재 ${product.name} ${generalQuantity}개는 프로모션 할인이 적용되지 않습니다.`,
+    );
+
+    if (isWithoutPromotion === 'N') {
+      return { name: product.name, totalQuantity: promotionQuantity, promotionQuantity };
+    }
+
+    return { name: product.name, totalQuantity: promotionQuantity + generalQuantity, promotionQuantity };
   }
 }
 
