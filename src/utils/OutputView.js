@@ -13,6 +13,14 @@ class OutputView {
 
     Console.print(`${str}`);
   }
+
+  printTotalPrice(totalPurchaseItemsAmount, totalPrice, promotionDiscout, membershipDiscount) {
+    Console.print('====================================');
+    Console.print(`총구매액\t\t${totalPurchaseItemsAmount}\t${totalPrice.toLocaleString('ko-KR')}`);
+    Console.print(`행사할인\t\t\t-${promotionDiscout.toLocaleString('ko-KR')}`);
+    Console.print(`멤버십할인\t\t\t-${membershipDiscount.toLocaleString('ko-KR')}`);
+    Console.print(`내실돈\t\t\t\t${totalPrice - promotionDiscout - membershipDiscount}`);
+  }
 }
 
 export default OutputView;

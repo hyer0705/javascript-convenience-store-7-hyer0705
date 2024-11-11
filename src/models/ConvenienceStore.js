@@ -206,46 +206,40 @@ class ConvenienceStore {
   }
 
   calculateBillAmount() {
-    let totalPrice = 0;
-    let promotionDiscout = 0;
+    const totalPrice = this.calculateTotalPrice();
+    const promotionDiscout = this.calculatePromotionDiscount();
     const totalPurchaseItemsAmount = this.purchaseItems.reduce((acc, curr) => acc + curr.totalQuantity, 0);
     const membershipDiscount = this.calculateMembershipDiscount();
 
-    Console.print('==============W 편의점================');
-    Console.print(`상품명\t\t수량\t금액`);
-    this.purchaseItems.forEach(item => {
-      totalPrice += this.calculateItemPrice(item);
-    });
+    this.printProducts();
+    this.printPromotionGift();
+    this.#ouputView.printTotalPrice(totalPurchaseItemsAmount, totalPrice, promotionDiscout, membershipDiscount);
+  }
 
-    Console.print(`=============${'증'.padEnd(7, ' ')}정===============`);
-    this.purchaseItems.forEach(item => {
-      promotionDiscout += this.calculatePromotionDiscount(item);
-    });
-    Console.print('====================================');
-
-    Console.print(`총구매액\t\t${totalPurchaseItemsAmount}\t${totalPrice.toLocaleString('ko-KR')}`);
-    Console.print(`행사할인\t\t\t-${promotionDiscout.toLocaleString('ko-KR')}`);
-    Console.print(`멤버십할인\t\t\t-${membershipDiscount.toLocaleString('ko-KR')}`);
-    Console.print(`내실돈\t\t\t\t${totalPrice - promotionDiscout - membershipDiscount}`);
+  calculateTotalPrice() {
+    return this.purchaseItems.map(item => this.calculateItemPrice(item)).reduce((acc, currPrice) => acc + currPrice, 0);
   }
 
   calculateItemPrice(item) {
     const findProduct = this.products.find(product => product.name === item.name);
     const calculatePrice = findProduct.price * item.totalQuantity;
 
-    Console.print(`${item.name}\t\t${item.totalQuantity}\t${calculatePrice.toLocaleString('ko-KR')}`);
     return calculatePrice;
   }
 
-  calculatePromotionDiscount(item) {
+  calculatePromotionDiscount() {
+    return this.purchaseItems
+      .map(item => this.calculatePromotionGiftAmount(item))
+      .reduce((acc, currPromotionGiftAmount) => acc + currPromotionGiftAmount, 0);
+  }
+
+  calculatePromotionGiftAmount(item) {
     if (item.promotionQuantity <= 0) return 0;
 
     const findProduct = this.products.find(product => product.name === item.name);
     const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
 
     const giftItems = item.promotionQuantity / (findPromotion.buy + findPromotion.get);
-
-    Console.print(`${item.name}\t\t${giftItems}`);
 
     return giftItems * findProduct.price;
   }
@@ -261,6 +255,26 @@ class ConvenienceStore {
     }, 0);
 
     return Math.min(8000, nonPromotionItemsTotalPrice * 0.3);
+  }
+
+  printProducts() {
+    Console.print('===========W\t 편의점=============\n상품명\t\t 수량\t 금액');
+    this.purchaseItems.forEach(item => {
+      const findProduct = this.products.find(product => product.name === item.name);
+      Console.print(`${item.name}\t\t ${item.totalQuantity}\t ${findProduct.price * item.totalQuantity}`);
+    });
+  }
+
+  printPromotionGift() {
+    Console.print('===========증\t 정=============');
+    this.purchaseItems
+      .filter(item => item.promotionQuantity > 0)
+      .forEach(item => {
+        const findProduct = this.products.find(product => product.name === item.name);
+        const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
+
+        Console.print(`${item.name}\t\t${item.promotionQuantity / (findPromotion.get + findPromotion.buy)}`);
+      });
   }
 }
 
