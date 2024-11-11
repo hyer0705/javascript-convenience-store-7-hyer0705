@@ -214,6 +214,8 @@ class ConvenienceStore {
     this.printProducts();
     this.printPromotionGift();
     this.#ouputView.printTotalPrice(totalPurchaseItemsAmount, totalPrice, promotionDiscout, membershipDiscount);
+
+    this.resetPurchase();
   }
 
   calculateTotalPrice() {
@@ -239,7 +241,7 @@ class ConvenienceStore {
     const findProduct = this.products.find(product => product.name === item.name);
     const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
 
-    const giftItems = item.promotionQuantity / (findPromotion.buy + findPromotion.get);
+    const giftItems = Math.floor(item.promotionQuantity / (findPromotion.buy + findPromotion.get));
 
     return giftItems * findProduct.price;
   }
@@ -267,14 +269,13 @@ class ConvenienceStore {
 
   printPromotionGift() {
     Console.print('===========증\t 정=============');
-    this.purchaseItems
-      .filter(item => item.promotionQuantity > 0)
-      .forEach(item => {
-        const findProduct = this.products.find(product => product.name === item.name);
-        const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
+    const filtered = this.purchaseItems.filter(item => item.promotionQuantity > 0);
+    filtered.forEach(item => {
+      const findProduct = this.products.find(product => product.name === item.name);
+      const findPromotion = this.promotions.find(promotion => promotion.name === findProduct.promotion);
 
-        Console.print(`${item.name}\t\t${item.promotionQuantity / (findPromotion.get + findPromotion.buy)}`);
-      });
+      Console.print(`${item.name}\t\t${Math.floor(item.promotionQuantity / (findPromotion.get + findPromotion.buy))}`);
+    });
   }
 }
 
